@@ -80,4 +80,17 @@
     margin-top: 3px;
 }
 
+.btn-1 {
+    padding-right: 10px;
+}
 
+.img-card {
+
+    width: 145px;
+    height: 110px;
+    margin-left: 2px;
+    margin-top: 3px;
+    margin-right: 4px;
+    margin-bottom: 3px;
+    object-fit: cover;
+}
