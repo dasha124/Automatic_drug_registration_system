@@ -1,0 +1,16 @@
+
+<!-- отрисовка одной карточки -->
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/examp.css' %}">
+
+<div class="card_2">
+    <img class="img-card" src="{{disease.image}}" alt="картинка">
+
+    <div class="card-body">
+        <!-- <p class="aspect_st">{{ disease.id }}</p> -->
+        <button class="butt_serv">
+            <a href="{% url 'disease_url' disease.id %}">{{ disease.disease_name }}</a></button>
+            <a href="{% url 'delete_url' disease.id %}">Удалить</a></button>
+        </div>
+</div>

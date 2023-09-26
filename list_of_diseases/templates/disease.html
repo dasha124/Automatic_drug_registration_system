@@ -11,15 +11,19 @@
 <div class="card_serv">
 
     <div>
-        <p class="service-text">{{ s.text }}</p>
+
+        <p class="service-text"> {{ data.disease.general_info }}</p>
 
         <p></p>
         <p class="service-text"> Характерные симптомы:</p>
         <p></p>
+    
 
-        {% for var in s.simp %}
+        {% for var in data.simptoms %}
             <li class="service-text-li">{{ var }}</li>
         {% endfor %}
+        
+
     </div>
 </div>
 
