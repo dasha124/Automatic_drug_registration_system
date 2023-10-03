@@ -8,9 +8,9 @@
     <img class="img-card" src="{{disease.image}}" alt="картинка">
 
     <div class="card-body">
-        <!-- <p class="aspect_st">{{ disease.id }}</p> -->
+        <p class="aspect_st">{{ disease.sphere_name }}</p> 
         <button class="butt_serv">
-            <a href="{% url 'disease_url' disease.id %}">{{ disease.disease_name }}</a></button>
-            <a href="{% url 'delete_url' disease.id %}">Удалить</a></button>
+            <a href="{% url 'disease_url' disease.disease_id %}">{{ disease.disease_name }}</a></button>
+            <a class="l1" href="{% url 'delete_url' disease.disease_id %}">Удалить</a></button>
         </div>
 </div>

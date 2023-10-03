@@ -38,7 +38,7 @@
 .card_2 {
     margin-top: 3px; 
     border: 3px solid #1dd3a2;
-    height: 220px;
+    height: 235px;
     width: 150px;
     border-radius: 5px;
     margin-left: 1px;
@@ -55,18 +55,20 @@
 
 
 .aspect_st {
-        color: black;
-        font-size: 1rem;
-        font-family: Arial, Helvetica, sans-serif;  
+    color: rgb(9, 8, 8);
+    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;  
 }
 
 .butt_serv {
         position: relative;
         bottom: 5px;
-        font-size: 14px;
+        font-size: 15px;
         background-color: #1dd3a2;
         border-radius: 4px;
         width: 140px;
+        margin-bottom: 7px;
+        margin-top: 1px;
 }
 
 .btn {
@@ -85,12 +87,16 @@
 }
 
 .img-card {
-
     width: 145px;
     height: 110px;
     margin-left: 2px;
     margin-top: 3px;
     margin-right: 4px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
     object-fit: cover;
+}
+
+.l1 {
+
+    margin-bottom: 5px;
 }

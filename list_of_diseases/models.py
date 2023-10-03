@@ -33,6 +33,10 @@ class Disease(models.Model):
     def __str__(self):
         return self.disease_name
 
+    def sphere_name(self):
+        return self.sphere_id.sphere_name
+
+
     class Meta:
         managed = True
         verbose_name_plural = 'Заболевания'
