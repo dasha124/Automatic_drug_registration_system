@@ -5,7 +5,7 @@ from django.db import models
 
 
 class Sphere(models.Model):
-    sphere_id = models.IntegerField(primary_key=True)
+    sphere_id = models.AutoField(primary_key=True)
     sphere_name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -17,12 +17,12 @@ class Sphere(models.Model):
 
 
 class Disease(models.Model):
-    disease_id = models.IntegerField(primary_key=True)
+    disease_id = models.AutoField(primary_key=True)
     disease_name = models.CharField(max_length=150)
     general_info = models.CharField(max_length=255)
     simptoms = models.CharField(max_length=255)
     sphere_id = models.ForeignKey(Sphere, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='list_of_diseases/static/images')
+    image = models.ImageField(upload_to='list_of_diseases/static/images', blank=True, null=True)
 
     STATUSES = [
         ('a', 'active'),
@@ -43,7 +43,7 @@ class Disease(models.Model):
 
 
 class User(models.Model):
-    user_id = models.IntegerField(primary_key=True)
+    user_id = models.AutoField(primary_key=True)
     user_name = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     is_admin = models.BooleanField(default=False)
@@ -57,7 +57,7 @@ class User(models.Model):
 
 
 class Medical_drug(models.Model):
-    drug_id =models.IntegerField(primary_key=True)
+    drug_id =models.AutoField(primary_key=True)
     drug_name = models.CharField(max_length=150)
     sphere_id = models.ForeignKey(Sphere, on_delete=models.CASCADE)
     # автоматом ставим время только при изменении объекта, а не при создании
@@ -88,6 +88,9 @@ class Medical_drug(models.Model):
 class DiseaseDrug(models.Model):
     disease_id = models.ForeignKey(Disease, on_delete=models.CASCADE)
     drug_id = models.ForeignKey(Medical_drug, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.disease_id.disease_name}{self.drug_id.drug_name}"
 
     class Meta:
         managed = True
