@@ -1,23 +1,31 @@
-import psycopg2
+import psycopg2, ctypes
+import base64
+
+
+with open('/home/student/pythonProjects/bmstu_lab/bmstu_lab/images/по_умолчанию.jpg', 'rb') as file:
+    image_binary = base64.b64encode(file.read())
+
 conn = psycopg2.connect(user="student",
                         password="root",
                         host="127.0.0.1",
                         port="5432",
-                        database='student_1')
+                        database='student')
 
 
 cursor = conn.cursor()
 
+update_query = """
+    UPDATE list_of_diseases_disease
+    SET image = %s
+    where disease_id = 5
+"""
 
 
-#curs.execute(INSERT INTO users (name, age) VALUES (%s, %s), ('John', 19))
- #INSERT INTO list_of_diseases_disease (disease_name, general_info, sim) VALUES (1, 'Iphone12', 1100)
-# данные для добавления
+# Обновление значения столбца icon
+cursor.execute(update_query, (image_binary,))
 
-cursor.execute('ALTER TABLE list_of_diseases_disease ')
- 
-conn.commit()  
-print("Данные добавлены")
- 
+# Сохранение изменений и закрытие соединения
+conn.commit()
 cursor.close()
 conn.close()
+

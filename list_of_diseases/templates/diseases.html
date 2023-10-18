@@ -17,7 +17,17 @@
 
 <ul>
     {% for disease in data.diseases %}
-        <tr>{% include 'disease_element.html' with element=disease %}</tr>
+            
+        <div class="card_2">
+            
+            <img class="img-card" src="data:image/jpeg;base64,{{ disease.image64 }}" alt="картинка">
+            <div class="card-body">
+                <p class="aspect_st">{{ disease.sphere_name }}</p> 
+                <button class="butt_serv">
+                    <a href="{% url 'disease_url' disease.disease_id %}">{{ disease.disease_name }}</a></button>
+                    <a class="l1" href="{% url 'delete_url' disease.disease_id %}">Удалить</a></button>
+                </div>
+        </div>
     {% empty %}
         <li>Список болезней пуст</li>
     {% endfor %}
