@@ -176,6 +176,7 @@ def get_drugs(request, format=None):
 
     return Response(serializer.data)
 
+    
 
 # информация о препарате (заявке)
 @api_view(['GET'])
