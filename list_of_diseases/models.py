@@ -31,17 +31,19 @@ class Disease(models.Model):
 
 
     def __str__(self):
+        print("return self.name")
         return self.disease_name
 
     def sphere_name(self):
         return self.sphere_id.sphere_name
     
     def image64(self):
+        print("1")
         a= str(self.image.tobytes())[2:]
         a = a[:-1]
-        #im = data:image/jpeg;base64,{{ disease.image64 }}
-        #return f"data:image/jpeg;base64,{self.a}"
         return a
+    
+    
 
 
     class Meta:

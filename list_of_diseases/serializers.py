@@ -6,20 +6,21 @@ from rest_framework import serializers
 
 # заболевание = услуга
 class DiseaseSerializer(serializers.ModelSerializer):
-   
+    print("!!!!!!!!!!!!!!!!!!!!!")
+
     class Meta:
         # Модель, которую мы сериализуем
         model = Disease
         # Поля, которые мы сериализуем
         fields= "__all__"
 
+    def image64(self, obj):
+        print("1")
+        a= str(obj.image.tobytes())[2:]
+        a = a[:-1]
+        return a
+             
 
-class DiseaseNameSerializer(serializers.ModelSerializer):
-    class Meta:
-        # Модель, которую мы сериализуем
-        model = Disease
-        # Поля, которые мы сериализуем
-        fields= ['disease_name']
 
 
 class DrugSerializer(serializers.ModelSerializer):
