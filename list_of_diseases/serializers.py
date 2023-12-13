@@ -2,6 +2,7 @@
 # Сериализаторы были придуманы для того, чтобы преобразовывать наши модели из базы данных в JSON и наоборот.
 from .models import *
 from rest_framework import serializers
+from collections import OrderedDict
 
 
 # заболевание = услуга
@@ -30,7 +31,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'password', 'is_staff', 'is_superuser')
+        fields = ('id', 'email', 'password', 'is_staff', 'is_superuser', 'username')
         write_only_fields = ('password',)
         read_only_fields = ('id',)
 
@@ -40,6 +41,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
         user = CustomUser.objects.create(
             email=validated_data['email'],
+            username = validated_data['username']
         )
 
         user.set_password(validated_data['password'])
@@ -58,4 +60,12 @@ class UserLoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'is_moderator')
+        fields = ('id', 'email', 'is_superuser')
+
+        # def get_fields(self):
+        #     new_fields = OrderedDict()
+        #     for name, field in super().get_fields().items():
+        #         field.required = False
+        #         new_fields[name] = field
+        #     print("NF =", new_fields)
+        #     return new_fields

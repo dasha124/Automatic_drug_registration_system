@@ -340,6 +340,29 @@ def register(request):
 # @permission_classes([AllowAny])
 # # @authentication_classes([SessionAuthentication, BasicAuthentication])
 
+
+# @api_view(['POST'])
+# @csrf_exempt
+# @permission_classes([AllowAny])
+# @authentication_classes([])
+# def login_view(request):
+#     """
+#     Авторизация пользователя
+#     """
+#     username = request.POST["email"] 
+#     password = request.POST["password"]
+#     user = authenticate(request=request, email=username, password=password)
+#     if user is not None:
+#         login(request, user)
+#         user_id = CustomUser.objects.get(email=username).id
+#         random_key = uuid.uuid4()
+#         session_storage.set(str(random_key), user_id)
+#         response = HttpResponse("{'status': 'ok'}")
+#         response.set_cookie("session_id", random_key)
+#         return response
+#     else:
+#         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @authentication_classes([])
@@ -357,19 +380,21 @@ def login_view(request):
     # Аутентификация пользователя
 
 
-    user = authenticate(request, **serializer.validated_data)
+    user = authenticate(request, **serializer.data)
     # user = authenticate(request, email=username, password=password)
+    print(serializer.validated_data)
     print(user)
     
     if user is not None:
         random_key = str(uuid.uuid4())
-        session_storage.set(random_key, username)
+        session_storage.set(random_key, user.username)
 
         data = {
             "session_id": random_key,
             "user_id": user.id,
             "email": user.email,
             "is_moderator": user.is_superuser,
+            "username": user.username
         }
 
         response = Response(data, status=status.HTTP_201_CREATED)
