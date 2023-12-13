@@ -3,7 +3,7 @@ import base64
 
 
 with open('/home/student/pytonProjects/bmstu_lab/bmstu_lab/images/аритмия.jpg', 'rb') as file:
-    image_binary = base64.b64encode(file.read())
+    image_binary = base64.b64encode(file.read()).decode('utf-8')
 
 conn = psycopg2.connect(user="student",
                         password="root",

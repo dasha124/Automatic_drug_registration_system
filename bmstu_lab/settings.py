@@ -40,7 +40,22 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # DRF
     'rest_framework',
+    #'drf_yasg',
+    #'drf_yasg2',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ]
+}
+
+REDIS_HOST = '0.0.0.0'
+REDIS_PORT = 6379
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -1,9 +1,7 @@
-from django.shortcuts import render
 from django.utils import timezone
 from django.db.models import Q
 # Create your views here.
-from django.http import HttpResponse
-from django.http import HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from datetime import date
 from django.db import connection
@@ -15,55 +13,20 @@ from list_of_diseases.serializers import *
 from list_of_diseases.models import *
 from rest_framework.decorators import api_view
 from operator import itemgetter
-
-
-import base64
- 
-def DiseasesList(request):
-    query = request.GET.get('query', '')
-    
-    print(query)
-    search_diseases = []
-    for disease in Disease.objects.filter(status='a'):
-        if query.lower() in disease.disease_name.lower():
-            search_diseases.append(disease)
-
-    if len(search_diseases)>0:
-        return render(request, 'diseases.html', {'data': {
-        'diseases': search_diseases
-    }})
-    else:
-        return render(request, 'diseases.html', {'data': {
-        'diseases': Disease.objects.filter(status='a')
-    }})
-
-    
-
-def GetDisease(request, id):
-    s = Disease.objects.get(disease_id=id).simptoms.split(',')
-    return render(request, 'disease.html', {'data': { 
-        'disease': Disease.objects.get(disease_id=id),
-        'simptoms': s
-        }  
-    })
+from drf_yasg2.utils import swagger_auto_schema
+from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.conf import settings
+import redis
+import uuid
+from .permissions import IsAuthenticated, IsModerator
 
 
 
-def Delete(self, id):
-    with connection.cursor() as cursor:
-        cursor.execute("update list_of_diseases_disease set status='d' WHERE disease_id = %s", [id])
-    return redirect("/")
-
-
-
-# def GetIm(request, id):
-#     with connection.cursor() as cursor:
-#         cursor.execute("select encode(list_of_diseases_disease.image, 'escape') as image from list_of_diseases_disease")
-#         response = HttpResponse(a, content_type = 'image/jpeg')
-#     return response
-
-
-#  /------------------------------------------------------------------------------------------
 
 # список заболеваний (услуг)
 @api_view(['GET'])
@@ -117,10 +80,13 @@ def get_found_diseases(request, format=None):
 
 # добавление нового заболевания (услуги)
 @api_view(['POST'])
+@permission_classes([IsModerator])
 def post_disease(request, format=None):
-    print('post')
+
     serializer = DiseaseSerializer(data=request.data)
+
     if serializer.is_valid():
+
         serializer.save()
         diseases = Disease.objects.filter(status='a')
         serializer = DiseaseSerializer(diseases, many=True )
@@ -130,6 +96,8 @@ def post_disease(request, format=None):
 
 # информация о заболевании (услуге)
 @api_view(['GET'])
+@permission_classes([IsModerator])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 def get_disease(request, id, format=None):
     print("disease_id =", id)
     disease = get_object_or_404(Disease, disease_id=id)
@@ -140,6 +108,8 @@ def get_disease(request, id, format=None):
 
 
 # обновление информации о заболевании (услуге)
+# @swagger_auto_schema(method='put', request_body=DiseaseSerializer)
+@permission_classes([IsModerator])
 @api_view(['PUT'])
 def put_disease(request, id, format=None):
     disease = get_object_or_404(Disease, disease_id=id)
@@ -152,6 +122,8 @@ def put_disease(request, id, format=None):
 
 # удаление информации о заболевании (услуге)
 @api_view(['DELETE'])
+@permission_classes([IsModerator])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 def delete_disease(request, id, format=None):
     print('delete')
     disease = get_object_or_404(Disease, disease_id=id)
@@ -161,15 +133,23 @@ def delete_disease(request, id, format=None):
 
 # добавление услуги в заявку
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def add_disease_to_drug(request, id):
+
     if not Disease.objects.filter(disease_id=id).exists():
         return Response(f"Заболевания с таким id не найдено")
+    
+    ssid = request.COOKIES.get("session_id")
+    user = CustomUser.objects.get(username=session_storage.get(ssid).decode('utf-8'))
+    
     
     disease = Disease.objects.get(disease_id=id)
     drug = Medical_drug.objects.filter(status='e').last()
 
     if drug is None:
         drug = Medical_drug.objects.create()
+        print("POST add_disease_to_drug_ ID_USER=PK")
+        drug.user_id = user.pk
     
     drug.for_disease.add(disease)
     drug.save()
@@ -180,9 +160,13 @@ def add_disease_to_drug(request, id):
 
 # список препаратов (заявок)
 @api_view(['GET'])
+@permission_classes([IsModerator])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 def get_drugs(request, format=None):
-    print('get')
-    drugs= Medical_drug.objects.order_by('-time_create').filter(status='e')
+    print("em =", username, "pas =", password)
+
+    
+    drugs= Medical_drug.objects.exclude(status__in=['d', 'e']).order_by('-time_create')
     #drugs= Medical_drug.objects.all()
     serializer = DrugSerializer(drugs, many=True)
 
@@ -192,6 +176,8 @@ def get_drugs(request, format=None):
 
 # информация о препарате (заявке)
 @api_view(['GET'])
+@permission_classes([IsModerator])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 def get_drug(request, id, format=None):
     drug = get_object_or_404(Medical_drug, drug_id=id)
 
@@ -202,6 +188,8 @@ def get_drug(request, id, format=None):
 
 # изменение информации о препарате (заявке)
 @api_view(['PUT'])
+@permission_classes([IsModerator])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 def update_drug(request, id, format=None):
     drug = get_object_or_404(Medical_drug, drug_id=id)
     serializer = DrugSerializer(drug, data=request.data)
@@ -213,6 +201,8 @@ def update_drug(request, id, format=None):
 
 # удаление информации о препарате (заявке)
 @api_view(['DELETE'])
+@permission_classes([IsModerator])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 def delete_drug(request, id, format=None):
     print('delete')
     drug = get_object_or_404(Medical_drug, drug_id=id)
@@ -221,6 +211,7 @@ def delete_drug(request, id, format=None):
 
 # удаление введенного препарата (заявки)
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_entered_drug(request, format=None):
     if not Medical_drug.objects.filter(status='e').exists():
         return Response(f"Препарата со статусом 'Черновик' не существует")
@@ -236,6 +227,7 @@ def delete_entered_drug(request, format=None):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def drug_update_status_user(request, id):
     if not Medical_drug.objects.filter(drug_id=id).exists():
         return Response(f"Препарата с таким id не существует")
@@ -265,6 +257,8 @@ def drug_update_status_user(request, id):
 
     
 @api_view(['PUT'])
+@permission_classes([IsModerator])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 def drug_update_status_admin(request, id):
     if not Medical_drug.objects.filter(drug_id=id).exists():
         return Response(f"Препарата с таким id не существует")
@@ -291,6 +285,8 @@ def drug_update_status_admin(request, id):
 
 # удаление заболевания из связанного с ним препарата (из м-м)
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
 def delete_disease_from_drug(request, disease_id_r, drug_id_r, format=None):
     print('delete')
     if not Disease.objects.filter(disease_id=disease_id_r).exists():
@@ -312,6 +308,92 @@ def delete_disease_from_drug(request, disease_id_r, drug_id_r, format=None):
     else:
         return Response(f"Объектов для удаления не найдено", status = status.HTTP_404_NOT_FOUND)
 
+
+
+# Connect to our Redis instance
+session_storage = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+
+
+    
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def register(request):
+    # Ensure username and passwords are posted is properly
+    serializer = UserRegisterSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create user
+    user = serializer.save()
+    message = {
+        'message': 'Пользователь успешно зарегистрирован',
+        'user_id': user.id
+    }
+
+    return Response(message, status=status.HTTP_201_CREATED)
+    
+
+#@swagger_auto_schema(method='post', request_body=UserSerializer)   
+# @api_view(['POST']) 
+# @permission_classes([AllowAny])
+# # @authentication_classes([SessionAuthentication, BasicAuthentication])
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def login_view(request):
+    # username = request.POST["email"] 
+    # password = request.POST["password"]
+
+
+    serializer = UserLoginSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
+    # Аутентификация пользователя
+
+
+    user = authenticate(request, **serializer.validated_data)
+    # user = authenticate(request, email=username, password=password)
+    print(user)
     
+    if user is not None:
+        random_key = str(uuid.uuid4())
+        session_storage.set(random_key, username)
+
+        data = {
+            "session_id": random_key,
+            "user_id": user.id,
+            "email": user.email,
+            "is_moderator": user.is_superuser,
+        }
+
+        response = Response(data, status=status.HTTP_201_CREATED)
+        response.set_cookie("session_id", random_key, httponly=False)
+
+        return response
+    else:
+        return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+    
+
+
+
+# @swagger_auto_schema(method='post')
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def logout_view(request):
+    ssid = request.COOKIES.get("session_id")
+
+    if ssid is None:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    session_storage.delete(ssid)
+
+    logout(request._request)
+    response = HttpResponse(status=status.HTTP_200_OK)
+    response.delete_cookie("session_id")
+    return response

@@ -1,8 +1,49 @@
 from django.db import models
-import base64
+from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin, BaseUserManager, UserManager
+from django.contrib.auth.models import Group, Permission
+
+
+class NewUserManager(BaseUserManager):
+
+    def create_user(self,email,password=None, **extra_fields):
+        if not email:
+            raise ValueError('Поле "email" обязательно')
+        
+        email = self.normalize_email(email) 
+        user = self.model(email=email, **extra_fields) 
+        user.set_password(password)
+        user.save(using=self.db)
+        return user
+    
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(email, password, **extra_fields)
+    
+
+
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(("email адрес"), unique=True)
+    username = models.CharField(max_length=30, unique=True, null=True, blank=True, verbose_name="Имя пользователя")
+    password = models.TextField(max_length=256, verbose_name="Пароль")    
+    is_staff = models.BooleanField(default=False, verbose_name="Является ли пользователь менеджером?")
+    is_superuser = models.BooleanField(default=False, verbose_name="Является ли пользователь админом?")
+
+    is_active = models.BooleanField(default=True)
+    groups = models.ManyToManyField(Group, verbose_name=("groups"), blank=True, related_name="custom_user_groups")
+    user_permissions = models.ManyToManyField(Permission, blank=True, related_name="custom_user_permissions")
+
+    USERNAME_FIELD = 'email'
+
+    objects =  NewUserManager()
+
+
+
+
 
 class Sphere(models.Model):
-    sphere_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     sphere_name = models.CharField(max_length=100)
 
 
@@ -16,12 +57,12 @@ class Sphere(models.Model):
 
 
 class Disease(models.Model):
-    disease_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     disease_name = models.CharField(default='Название болезни', max_length=150)
     general_info = models.CharField(default='Общая информация о болезни', max_length=255)
     simptoms = models.CharField(default='Симптомы', max_length=255)
     sphere_id = models.ForeignKey(Sphere, on_delete=models.CASCADE)
-    image = models.BinaryField(default=b'')
+    image = models.TextField(default='')
 
     STATUSES = [
         ('a', 'active'),
@@ -53,7 +94,7 @@ class Disease(models.Model):
 
 
 class User(models.Model):
-    user_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user_name = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     is_admin = models.BooleanField(default=False)
@@ -67,7 +108,7 @@ class User(models.Model):
 
 
 class Medical_drug(models.Model):
-    drug_id =models.AutoField(primary_key=True)
+    id =models.AutoField(primary_key=True)
     drug_name = models.CharField(max_length=150, default='Название лекарства')
     sphere_id = models.ForeignKey(Sphere, on_delete=models.CASCADE, default=1)
     # автоматом ставим время только при изменении объекта, а не при создании
@@ -84,7 +125,7 @@ class Medical_drug(models.Model):
         ('d', 'Удалён') # удалён - 'deleted'
     ]
     status = models.CharField(max_length=1, choices=STATUSES, default='e')
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    user_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=1)
 
 
     def __str__(self):
@@ -108,7 +149,7 @@ class DiseaseDrug(models.Model):
 
     class Meta:
         managed = True
-        verbose_name_plural = 'Заболевание-препарат'
+        verbose_name_plural = 'Заболевания-препараты'
 
 
 
