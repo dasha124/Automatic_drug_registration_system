@@ -13,7 +13,7 @@ from list_of_diseases.serializers import *
 from list_of_diseases.models import *
 from rest_framework.decorators import api_view
 from operator import itemgetter
-from drf_yasg2.utils import swagger_auto_schema
+# from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -24,12 +24,15 @@ from django.conf import settings
 import redis
 import uuid
 from .permissions import IsAuthenticated, IsModerator
+import json
 
 
 
 
 # список заболеваний (услуг)
 @api_view(['GET'])
+@permission_classes([AllowAny])
+# @authentication_classes([SessionAuthentication, BasicAuthentication])
 def get_diseases(request, format=None):
     print('get_1')
     disease_name_r = request.GET.get('disease_name')
@@ -100,7 +103,7 @@ def post_disease(request, format=None):
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 def get_disease(request, id, format=None):
     print("disease_id =", id)
-    disease = get_object_or_404(Disease, disease_id=id)
+    disease = get_object_or_404(Disease, id=id)
     if request.method == 'GET':
         serializer = DiseaseSerializer(disease)
         return Response(serializer.data)
@@ -122,12 +125,12 @@ def put_disease(request, id, format=None):
 
 # удаление информации о заболевании (услуге)
 @api_view(['DELETE'])
-@permission_classes([IsModerator])
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 def delete_disease(request, id, format=None):
     print('delete')
     disease = get_object_or_404(Disease, disease_id=id)
-    disease.delete()
+    disease.status='d'
+    disease.save()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -163,9 +166,7 @@ def add_disease_to_drug(request, id):
 @permission_classes([IsModerator])
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 def get_drugs(request, format=None):
-    print("em =", username, "pas =", password)
 
-    
     drugs= Medical_drug.objects.exclude(status__in=['d', 'e']).order_by('-time_create')
     #drugs= Medical_drug.objects.all()
     serializer = DrugSerializer(drugs, many=True)
@@ -314,7 +315,7 @@ def delete_disease_from_drug(request, disease_id_r, drug_id_r, format=None):
 session_storage = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 
-    
+# @swagger_auto_schema(request_body=UserLoginSerializer)
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @authentication_classes([])
@@ -335,41 +336,14 @@ def register(request):
     return Response(message, status=status.HTTP_201_CREATED)
     
 
-#@swagger_auto_schema(method='post', request_body=UserSerializer)   
-# @api_view(['POST']) 
-# @permission_classes([AllowAny])
-# # @authentication_classes([SessionAuthentication, BasicAuthentication])
 
-
-# @api_view(['POST'])
-# @csrf_exempt
-# @permission_classes([AllowAny])
-# @authentication_classes([])
-# def login_view(request):
-#     """
-#     Авторизация пользователя
-#     """
-#     username = request.POST["email"] 
-#     password = request.POST["password"]
-#     user = authenticate(request=request, email=username, password=password)
-#     if user is not None:
-#         login(request, user)
-#         user_id = CustomUser.objects.get(email=username).id
-#         random_key = uuid.uuid4()
-#         session_storage.set(str(random_key), user_id)
-#         response = HttpResponse("{'status': 'ok'}")
-#         response.set_cookie("session_id", random_key)
-#         return response
-#     else:
-#         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
-
+# @swagger_auto_schema(request_body=UserLoginSerializer)
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @authentication_classes([])
 def login_view(request):
-    # username = request.POST["email"] 
-    # password = request.POST["password"]
 
+    print('Looooooogin')
 
     serializer = UserLoginSerializer(data=request.data)
 
@@ -378,10 +352,7 @@ def login_view(request):
     
     
     # Аутентификация пользователя
-
-
     user = authenticate(request, **serializer.data)
-    # user = authenticate(request, email=username, password=password)
     print(serializer.validated_data)
     print(user)
     
@@ -393,7 +364,7 @@ def login_view(request):
             "session_id": random_key,
             "user_id": user.id,
             "email": user.email,
-            "is_moderator": user.is_superuser,
+            "is_superuser": user.is_superuser,
             "username": user.username
         }
 
@@ -404,8 +375,6 @@ def login_view(request):
     else:
         return HttpResponse(status=status.HTTP_403_FORBIDDEN)
     
-
-
 
 # @swagger_auto_schema(method='post')
 @api_view(['POST'])
@@ -422,3 +391,39 @@ def logout_view(request):
     response = HttpResponse(status=status.HTTP_200_OK)
     response.delete_cookie("session_id")
     return response
+
+
+
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+def async_result(request, format=None):
+    print('[INFO] API PUT [PUT_async_result]')
+    try:
+        # Преобразуем строку в объект Python JSON
+        json_data = json.loads(request.body.decode('utf-8'))
+        print(json_data)
+        const_token = 'my_secret_token'
+
+        if const_token != json_data['token']:
+            return Response(data={'message': 'Ошибка, токен не соответствует'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Изменяем значение sequence_number
+        try:
+            # Выводит конкретную заявку создателя
+            drug = get_object_or_404(Medical_drug, id=json_data['id_test'])
+            drug.status = json_data['test_status']
+            # Сохраняем объект Location
+            drug.save()
+            data_json = {
+                'id': drug.id,
+                'test_status': drug.get_test_status_display_word(),
+                'status': drug.get_grug_display_word()
+            }
+            return Response(data={'message': 'Статус миссии успешно обновлен', 'data': data_json},
+                            status=status.HTTP_200_OK)
+        except ValueError:
+            return Response({'message': 'Недопустимый формат преобразования'}, status=status.HTTP_400_BAD_REQUEST)
+    except json.JSONDecodeError as e:
+        print(f'Error decoding JSON: {e}')
+        return Response(data={'message': 'Ошибка декодирования JSON'}, status=status.HTTP_400_BAD_REQUEST)

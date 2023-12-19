@@ -129,8 +129,14 @@ class Medical_drug(models.Model):
         ('c', 'Отменён'), # отменён - 'cancelled'
         ('d', 'Удалён') # удалён - 'deleted'
     ]
+    TEST_STATUSES = [
+        (0, 'Не удалось обратиться к асинхронному сервису'),
+        (1, 'Успех'),
+        (2, 'Неуспех'),
+    ]
     status = models.CharField(max_length=1, choices=STATUSES, default='e')
     user_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=1)
+    test_status = models.IntegerField(choices=TEST_STATUSES, default=1)
 
 
     def __str__(self):
@@ -138,6 +144,14 @@ class Medical_drug(models.Model):
     
     def disease_name(self):
         return self.for_disease.all()
+    
+    def get_test_status_display_word(self):
+        status_test = dict(self.TEST_STATUSES)
+        return status_test.get(self.test_status, 'Unknown')
+    
+    def get_grug_display_word(self):
+        status_drug = dict(self.STATUSES)
+        return status_drug.get(self.status, 'Unknown')
     
     class Meta:
         managed = True
