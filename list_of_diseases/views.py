@@ -99,8 +99,6 @@ def post_disease(request, format=None):
 
 # информация о заболевании (услуге)
 @api_view(['GET'])
-@permission_classes([IsModerator])
-@authentication_classes([SessionAuthentication, BasicAuthentication])
 def get_disease(request, id, format=None):
     print("disease_id =", id)
     disease = get_object_or_404(Disease, id=id)
@@ -207,7 +205,8 @@ def update_drug(request, id, format=None):
 def delete_drug(request, id, format=None):
     print('delete')
     drug = get_object_or_404(Medical_drug, drug_id=id)
-    drug.delete()
+    drug.status='d'
+    drug.save()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 # удаление введенного препарата (заявки)
@@ -219,7 +218,8 @@ def delete_entered_drug(request, format=None):
     
     entered_drugs = Medical_drug.objects.filter(status='e')
     for drug in entered_drugs:
-        drug.delete()
+        drug.status='d'
+        drug.save()
     serializer = DrugSerializer(entered_drugs, many=False)
     return Response(serializer.data)
 

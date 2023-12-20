@@ -44,8 +44,9 @@ func getStatusWord(status int) string {
 
 func main() {
 	http.HandleFunc("/api/async_calc/", handleProcess)
-	fmt.Println("Server running at port :8100")
-	http.ListenAndServe(":8100", nil)
+	fmt.Println("Server running at port :5000")
+	http.ListenAndServe(":5000", nil)
+
 }
 
 func handleProcess(w http.ResponseWriter, r *http.Request) {
