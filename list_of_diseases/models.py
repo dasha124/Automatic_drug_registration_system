@@ -4,17 +4,6 @@ from django.db import models
 from django.db import models
 
 
-class Sphere(models.Model):
-    sphere_id = models.AutoField(primary_key=True)
-    sphere_name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.sphere_name
-
-    class Meta:
-        managed = True
-        verbose_name_plural = 'Сфера применения'
-
 
 class Disease(models.Model):
     disease_id = models.AutoField(primary_key=True)
@@ -32,10 +21,6 @@ class Disease(models.Model):
 
     def __str__(self):
         return self.disease_name
-
-    def sphere_name(self):
-        return self.sphere_id.sphere_name
-
 
     class Meta:
         managed = True
@@ -59,19 +44,17 @@ class User(models.Model):
 class Medical_drug(models.Model):
     drug_id =models.AutoField(primary_key=True)
     drug_name = models.CharField(max_length=150)
-    sphere_id = models.ForeignKey(Sphere, on_delete=models.CASCADE)
-    # автоматом ставим время только при изменении объекта, а не при создании
     time_create = models.DateTimeField(auto_now_add=True) 
     time_form = models.DateTimeField(auto_now=True) 
     time_finish = models.DateTimeField(auto_now=True)
     price = models.IntegerField(default=0)
     for_disease = models.ManyToManyField(Disease, through='DiseaseDrug')
     STATUSES = [
-        ('e', 'entered'), # введён
-        ('o', 'in operation'), # в работе
-        ('f', 'finished'), # завершён
-        ('c', 'cancelled'), # отменён 
-        ('d', 'deleted') # удалён
+        (0, 'Черновик'), 
+        (1, 'Сформирована'), 
+        (2, 'Завершёна'), 
+        (3, 'Отменёна'), 
+        (4, 'Удалёна') 
     ]
     status = models.CharField(max_length=1, choices=STATUSES)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
