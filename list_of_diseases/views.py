@@ -58,11 +58,6 @@ def get_found_diseases(request, format=None):
    
         return Response(serializer.data)
 
-    if sphere_r:
-        spheres = Sphere.objects.get(sphere_name=sphere_r)
-        diseases = diseases.filter(sphere_id=spheres.sphere_id)
-        serializer = DiseaseSerializer(diseases, many=True )
-   
         return Response(serializer.data)
 
 
