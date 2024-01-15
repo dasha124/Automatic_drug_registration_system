@@ -9,12 +9,14 @@ from collections import OrderedDict
 class DiseaseSerializer(serializers.ModelSerializer):
 
     class Meta:
-        # Модель, которую мы сериализуем
         model = Disease
-        # Поля, которые мы сериализуем
         fields= "__all__"
 
 
+class SphereSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sphere
+        fields = '__all__'
 
 class DrugSerializer(serializers.ModelSerializer):
 
@@ -23,6 +25,14 @@ class DrugSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medical_drug
         fields= "__all__"
+
+
+class DrugSerializer_get(serializers.ModelSerializer):
+    diseases = DiseaseSerializer(read_only = True, many=True)
+    
+    class Meta:
+        model = Medical_drug
+        fields= ['id', 'time_create', 'time_form', 'time_finish', 'user_id', 'status', 'diseases']
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -62,7 +72,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'is_superuser')
+        fields = ['id', 'email', 'is_superuser']
 
         # def get_fields(self):
         #     new_fields = OrderedDict()

@@ -35,12 +35,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     user_permissions = models.ManyToManyField(Permission, blank=True, related_name="custom_user_permissions")
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    # REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.username
 
     objects =  NewUserManager()
+    class Meta:
+        managed = True
     
 
 
@@ -117,26 +119,28 @@ class Medical_drug(models.Model):
     drug_name = models.CharField(max_length=150, default='Название лекарства')
     sphere_id = models.ForeignKey(Sphere, on_delete=models.CASCADE, default=1)
     # автоматом ставим время только при изменении объекта, а не при создании
-    time_create = models.DateTimeField(auto_now_add=True) 
-    time_form = models.DateTimeField(auto_now=True) 
-    time_finish = models.DateTimeField(auto_now=True)
+    time_create = models.DateField(auto_now_add=True) 
+    time_form = models.DateField(auto_now=True) 
+    time_finish = models.DateField(auto_now=True)
     price = models.IntegerField(default=0)
     for_disease = models.ManyToManyField(Disease, through='DiseaseDrug', null=False)
     STATUSES = [
-        ('e', 'Черновик'), # Черновик - 'entered'
-        ('o', 'В работе'), # в работе - 'in operation'
-        ('f', 'Завершён'), # завершён - 'finished'
-        ('c', 'Отменён'), # отменён - 'cancelled'
-        ('d', 'Удалён') # удалён - 'deleted'
+        (0, 'Черновик'), # Черновик - 'entered'
+        (1, 'Сформирована'), # на рассмотрениии - 'in operation'  - юзер смена
+        (2, 'Завершёна'), # завершён - 'finished' - (одобрен) админ
+        (3, 'Отменёна'), # отменён - 'cancelled'  - (отклонен) админ
+        (4, 'Удалёна') # удалён - 'deleted'  - юзер смена
     ]
     TEST_STATUSES = [
         (0, 'Не удалось обратиться к асинхронному сервису'),
         (1, 'Успех'),
         (2, 'Неуспех'),
     ]
-    status = models.CharField(max_length=1, choices=STATUSES, default='e')
-    user_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=1)
+    status = models.IntegerField(choices=STATUSES, default=0)
     test_status = models.IntegerField(choices=TEST_STATUSES, default=1)
+    user_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=1)
+    moderator = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='moderator', blank=True, null=True)
+    
 
 
     def __str__(self):
@@ -147,11 +151,11 @@ class Medical_drug(models.Model):
     
     def get_test_status_display_word(self):
         status_test = dict(self.TEST_STATUSES)
-        return status_test.get(self.test_status, 'Unknown')
+        return status_test.get(self.test_status, 'Неизвестный статус')
     
     def get_grug_display_word(self):
         status_drug = dict(self.STATUSES)
-        return status_drug.get(self.status, 'Unknown')
+        return status_drug.get(self.status, 'Неизвестный статус')
     
     class Meta:
         managed = True
