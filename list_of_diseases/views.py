@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect
 from datetime import date
 from django.db import connection
 
-from list_of_diseases.models import Disease, Medical_drug, Sphere, DiseaseDrug, User
+from list_of_diseases.models import Disease, Medical_drug, DiseaseDrug, User
 
 def DiseasesList(request):
     query = request.GET.get('query', '')
