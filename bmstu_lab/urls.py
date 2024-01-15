@@ -20,8 +20,6 @@ from list_of_diseases import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #path('service/<int:id>/', views.GetService, name='service_url'),
-    #path('', views.GetQuery, name="search")
     path('', views.DiseasesList),
     path('disease/<int:id>/', views.GetDisease, name='disease_url'),
     path('delete/<int:id>/', views.Delete, name='delete_url'),
