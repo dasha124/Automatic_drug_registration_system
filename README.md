@@ -4,4 +4,5 @@
 
 Смежные репозитории:
 * фронтенд : https://github.com/dasha124/list_of_diseases_frontend
-* нативное приложение (Tauri) : https://github.com/Azat-Bilalov/book-of-memory-tauri
+* нативное приложение : https://github.com/dasha124/list_of_diseases_native/tree/Native
+* асинхронный сервис : https://github.com/dasha124/list_of_diseases_async
