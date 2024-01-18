@@ -11,26 +11,12 @@ from list_of_diseases.models import Disease, Medical_drug, DiseaseDrug, User
 
 def DiseasesList(request):
     query = request.GET.get('query', '')
+
+    search_diseases = Disease.objects.filter(disease_name__icontains=query, status='a')
     
-    print(query)
-
-    search_diseases = Disease.objects.filter(disease_name__icontains=query)
-
     search_diseases_list = list(search_diseases)
-
-    # Передадим отфильтрованные объекты в шаблон для отображения
-    return render(request, 'geographical_objects.html', {'data': filtered_objects_list})
     
-   
-
-    if len(search_diseases)>0:
-        return render(request, 'diseases.html', {'data': {
-        'diseases': search_diseases
-    }})
-    else:
-        return render(request, 'diseases.html', {'data': {
-        'diseases': Disease.objects.all()
-    }})
+    return render(request, 'diseases.html', {'data': search_diseases_list})
 
     
 
