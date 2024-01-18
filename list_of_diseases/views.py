@@ -42,5 +42,5 @@ def GetDisease(request, id):
 
 def Delete(self, id):
     with connection.cursor() as cursor:
-        cursor.execute("delete from list_of_diseases_disease WHERE disease_id = %s", [id])
+        cursor.execute("UPDATE list_of_diseases_disease SET status='d' WHERE disease_id = %s", [id])
     return redirect("/")
