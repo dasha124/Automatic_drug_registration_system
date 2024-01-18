@@ -162,6 +162,7 @@ def logout_view(request):
 @swagger_auto_schema(method='GET')
 def get_diseases(request, format=None):
     disease_name_r = request.GET.get('disease_name')
+    print("t", disease_name_r)
      
     if not request.COOKIES.get('access_token') is None:
         token = get_access_token(request)
@@ -171,25 +172,41 @@ def get_diseases(request, format=None):
             curr_user = CustomUser.objects.get(id = user_id)
             print("admin")
             if curr_user.is_superuser:
-                diseases = Disease.objects.all()
+                if disease_name_r:
+                    diseases = Disease.objects.filter(
+                        Q(disease_name__icontains=disease_name_r.lower())
+                    )       
+                else:
+                    diseases = Disease.objects.all()
+            else:
+                if disease_name_r:
+                    diseases = Disease.objects.filter(
+                        Q(status='a') &
+                        Q(disease_name__icontains=disease_name_r.lower())
+                    )
+                else:
+                    diseases = Disease.objects.filter(
+                        Q(status='a')
+                    )
+
+
                 serializer = DiseaseSerializer(diseases, many=True )
     
                 return Response(serializer.data)
 
     else:
+        if disease_name_r:
+            diseases = Disease.objects.filter(
+                Q(status='a') &
+                Q(disease_name__icontains=disease_name_r.lower())
+            )
+            serializer = DiseaseSerializer(diseases, many=True )
+
+            return Response(serializer.data)
+    
         diseases = Disease.objects.filter(status='a')
         serializer = DiseaseSerializer(diseases, many=True )
     
-        return Response(serializer.data)
-
-
-    if disease_name_r:
-        diseases = Disease.objects.filter(
-            Q(status='a') &
-            Q(disease_name__icontains=disease_name_r.lower())
-        )
-        serializer = DiseaseSerializer(diseases, many=True )
-
         return Response(serializer.data)
     
 
