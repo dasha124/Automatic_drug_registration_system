@@ -1,27 +1,34 @@
 <!-- страничка, выводящая весь список услуг -->
+<!doctype html>
 
-{% extends 'base.html' %}
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static '../css/examp.css' %}">
+<html lang="en" class="h-100">
+<head>
+  <meta charset="utf-8">
+    {% load static %}
+    <title>Список услуг</title>
+    <link rel="stylesheet" type="text/css" href="{% static '../css/examp.css' %}">
+</head>
+<body>  
+    <p class="service-top"> Список услуг</p>
+     <form action="" method="get">
+            <input name="query" type="text"><br><br>
+            <input type="submit" value="Поиск">
+        </form>
+    
+    <ul>
+        {% for service in services %}
+            <tr>{% include 'service_element.html' with element=service %}</tr>
+        {% empty %}
+            <li>Список пуст</li>
+        {% endfor %}
+    </ul>
+    
+        
+</body>
+</html>
 
-{% block title %}<p class="service-top"> Список услуг</p>{% endblock %}
 
 
-{% block content %}
 
 
-<form action="" method="get">
-    <input name="query" type="text"><br><br>
-    <input type="submit" value="Поиск">
-</form>
 
-<ul>
-    {% for service in services %}
-        <tr>{% include 'service_element.html' with element=service %}</tr>
-    {% empty %}
-        <li>Список пуст</li>
-    {% endfor %}
-</ul>
-
-
-{% endblock %}
