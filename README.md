@@ -6,3 +6,4 @@
 * фронтенд : https://github.com/dasha124/list_of_diseases_frontend
 * нативное приложение : https://github.com/dasha124/list_of_diseases_native/tree/Native
 * асинхронный сервис : https://github.com/dasha124/list_of_diseases_async
+* GitHub Pages : https://dasha124.github.io/list_of_diseases_frontend/
