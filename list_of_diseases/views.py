@@ -14,7 +14,7 @@ def DiseasesList(request):
     
     print(query)
     search_diseases = []
-    for disease in Disease.objects.all():
+    for disease in Disease.objects.filter(status='a'):
         if query.lower() in disease.disease_name.lower():
             search_diseases.append(disease)
     
