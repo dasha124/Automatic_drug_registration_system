@@ -13,11 +13,15 @@ def DiseasesList(request):
     query = request.GET.get('query', '')
     
     print(query)
-    search_diseases = []
-    for disease in Disease.objects.filter(status='a'):
-        if query.lower() in disease.disease_name.lower():
-            search_diseases.append(disease)
+
+    search_diseases = Disease.objects.filter(disease_name__icontains=query)
+
+    search_diseases_list = list(search_diseases)
+
+    # Передадим отфильтрованные объекты в шаблон для отображения
+    return render(request, 'geographical_objects.html', {'data': filtered_objects_list})
     
+   
 
     if len(search_diseases)>0:
         return render(request, 'diseases.html', {'data': {
