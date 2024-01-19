@@ -13,26 +13,32 @@ class DiseaseSerializer(serializers.ModelSerializer):
         fields= "__all__"
 
 
-class SphereSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Sphere
-        fields = '__all__'
+
 
 class DrugSerializer(serializers.ModelSerializer):
 
     disease = DiseaseSerializer(read_only = True, many=True, source='for_disease')
+    user_id = serializers.CharField(source='user_id.username', read_only=True)
+    moderator = serializers.CharField(source='user_id.username', read_only=True)
+
     
     class Meta:
         model = Medical_drug
         fields= "__all__"
 
 
-class DrugSerializer_get(serializers.ModelSerializer):
-    diseases = DiseaseSerializer(read_only = True, many=True)
+class DrugsSerializer(serializers.ModelSerializer):
+
+    disease = DiseaseSerializer(read_only = True, many=True, source='for_disease')
+    user_id = serializers.CharField(source='user_id.username', read_only=True)
+    moderator = serializers.CharField(source='user_id.username', read_only=True)
+
     
     class Meta:
         model = Medical_drug
-        fields= ['id', 'time_create', 'time_form', 'time_finish', 'user_id', 'status', 'diseases']
+        exclude = ['for_disease']
+
+
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
