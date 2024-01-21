@@ -156,60 +156,92 @@ def logout_view(request):
 
 
 
+
 # список заболеваний (услуг)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 @swagger_auto_schema(method='GET')
 def get_diseases(request, format=None):
     disease_name_r = request.GET.get('disease_name')
-    print("t", disease_name_r)
-     
-    if not request.COOKIES.get('access_token') is None:
-        token = get_access_token(request)
-        if token:
-            payload = get_jwt_payload(token)
-            user_id = payload["user_id"]
-            curr_user = CustomUser.objects.get(id = user_id)
-            print("admin")
-            if curr_user.is_superuser:
-                if disease_name_r:
-                    diseases = Disease.objects.filter(
-                        Q(disease_name__icontains=disease_name_r.lower())
-                    )       
-                else:
-                    diseases = Disease.objects.all()
+    drugID=0
+    token = get_access_token(request)
+    if token != 'undefined':
+        payload = get_jwt_payload(token)
+        user_id = payload["user_id"]
+        curr_user = CustomUser.objects.get(id = user_id)
+        print("uuuuuuu", curr_user)
+
+        # try {        #     drug = Medical_drug.objects.get(user_id_id=user_id, status=0)
+        if curr_user.is_superuser:
+            print("ffbakjfkajf")
+            if disease_name_r:
+                diseases = Disease.objects.filter(
+                    Q(disease_name__icontains=disease_name_r.lower())
+                )       
             else:
-                if disease_name_r:
-                    diseases = Disease.objects.filter(
-                        Q(status='a') &
-                        Q(disease_name__icontains=disease_name_r.lower())
-                    )
-                else:
-                    diseases = Disease.objects.filter(
-                        Q(status='a')
-                    )
+                diseases = Disease.objects.all()
+                print(diseases)
+            try:
+                drug = Medical_drug.objects.get(user_id_id=user_id, status=0)
+                drugID = drug.id
+            except Medical_drug.DoesNotExist:
+                drugID = 0
+        else:
+            try:
+                drug = Medical_drug.objects.get(user_id_id=user_id, status=0)
+                drugID = drug.id
+            except Medical_drug.DoesNotExist:
+                drugID = 0
 
+            if disease_name_r:
+                diseases = Disease.objects.filter(
+                    Q(status='a') &
+                    Q(disease_name__icontains=disease_name_r.lower())
+                )
+            else:
+                diseases = Disease.objects.filter(
+                    Q(status='a')
+                )
 
-                serializer = DiseaseSerializer(diseases, many=True )
-    
-                return Response(serializer.data)
+        serialized_diseases = []
+        for disease in diseases:
+            serializer = DiseaseSerializer(disease)
+            serialized_diseases.append(serializer.data)
+        serialized_diseases.append({"drugID": drugID})
+
+        return Response(serialized_diseases)
 
     else:
-        if disease_name_r:
+        drugID=0
+        print('here')
+        if disease_name_r: # TODO
             diseases = Disease.objects.filter(
                 Q(status='a') &
                 Q(disease_name__icontains=disease_name_r.lower())
             )
-            serializer = DiseaseSerializer(diseases, many=True )
+            
+            serialized_diseases = []
+            for disease in diseases:
+                serializer = DiseaseSerializer(disease)
+                serialized_diseases.append(serializer.data)
 
-            return Response(serializer.data)
-    
-        diseases = Disease.objects.filter(status='a')
-        serializer = DiseaseSerializer(diseases, many=True )
-    
-        return Response(serializer.data)
-    
+            serialized_diseases.append({"drugID": 0})
 
+            return Response(serialized_diseases)
+
+        
+        diseases = Disease.objects.filter(
+        Q(status='a')
+        )
+
+        serialized_diseases = []
+        for disease in diseases:
+            serializer = DiseaseSerializer(disease)
+            serialized_diseases.append(serializer.data)
+
+        serialized_diseases.append({"drugID": 0})
+
+        return Response(serialized_diseases)
 
 # добавление нового заболевания (услуги)
 @swagger_auto_schema(method='post',request_body=DiseaseSerializer)
